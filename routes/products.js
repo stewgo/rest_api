@@ -1,20 +1,13 @@
 var express = require('express');
-const mariadb = require('mariadb');
+const getConnection = require('../utils/getConnection');
 
 const router = express.Router();
-const pool = mariadb.createPool({
-    host: 'localhost', 
-    user:'root', 
-    password: 'root',
-    connectionLimit: 5,
-    database: 'stewgo'
-});
 
 async function getProducts() {
     let conn;
 
     try {
-        conn = await pool.getConnection();
+        conn = await getConnection();
         const rows = await conn.query(`
             select p.id as id, p.name as productName, u.name as merchantName, price, availableDate, description
             from products p inner join users u on (p.merchantId = u.id);
