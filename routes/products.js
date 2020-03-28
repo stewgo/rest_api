@@ -1,5 +1,6 @@
-var express = require('express');
+const express = require('express');
 const getConnection = require('../utils/getConnection');
+const exceptionHandler = require('../utils/exceptionHandler');
 
 const router = express.Router();
 
@@ -21,16 +22,11 @@ async function getProducts() {
     }
 }
 
-
 /* GET products listing. */
-router.get('/', async (req, res, next) => {
-    try {
-        const products = await getProducts();
+router.get('/', exceptionHandler(async (req, res, next) => {
+    const products = await getProducts();
 
-        res.send(products);
-    } catch (e) {
-        next(e);
-    }
-});
+    res.send(products);
+}));
 
 module.exports = router;
