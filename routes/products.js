@@ -1,5 +1,4 @@
 const express = require('express');
-const getConnection = require('../utils/getConnection');
 const exceptionHandler = require('../utils/exceptionHandler');
 const ProductService = require('../services/productService');
 

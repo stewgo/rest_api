@@ -1,4 +1,5 @@
 const express = require('express');
+const assetRouter = require('./routes/assets');
 const productRouter = require('./routes/products');
 const loginRouter = require('./routes/login');
 const signupRouter = require('./routes/signup');
@@ -11,6 +12,7 @@ const port = 80;
 app.use(express.json());
 app.use(authenticationMiddleware);
 
+app.use('/assets', assetRouter);
 app.use('/products', productRouter);
 app.use('/login', loginRouter);
 app.use('/signup', signupRouter);
