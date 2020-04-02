@@ -41,8 +41,8 @@ class LoginService {
         const rows = await this.connection.query(
             `select id, username, password, email, name, isMerchant, phoneNumber, address 
             from users
-            where username = ?;`,
-            [username]
+            where username = ? or email = ?;`,
+            [username, username]
         );
         const user = rows[0];
 

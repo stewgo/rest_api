@@ -1,9 +1,8 @@
 const express = require('express');
 const OrderService = require('../services/orderService');
-
+const exceptionHandler = require('../utils/exceptionHandler');
 
 const router = express.Router();
-const exceptionHandler = require('../utils/exceptionHandler');
 
 router.post('/', exceptionHandler(async (req, res, next) => {
     if (!req.user) {

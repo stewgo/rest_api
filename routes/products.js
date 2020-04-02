@@ -1,32 +1,38 @@
 const express = require('express');
 const getConnection = require('../utils/getConnection');
 const exceptionHandler = require('../utils/exceptionHandler');
+const ProductService = require('../services/productService');
 
 const router = express.Router();
 
-async function getProducts() {
-    let conn;
-
-    try {
-        conn = await getConnection();
-        const rows = await conn.query(`
-            select p.id as id, p.name as productName, u.name as merchantName, price, availableDate, description
-            from products p inner join users u on (p.merchantId = u.id);
-        `);
-
-        return rows;
-    } catch (err) {
-        throw err;
-    } finally {
-	    if (conn) conn.end();
-    }
-}
-
 /* GET products listing. */
-router.get('/', exceptionHandler(async (req, res, next) => {
-    const products = await getProducts();
+router.get('/', exceptionHandler(async (req, res) => {
+    const productService = new ProductService();
+    let products;
+    const merchantId = req.query.merchantId;
+
+    if (merchantId) {
+        products = await productService.getProductsByMerchantId(merchantId);
+    } else {
+        products = await productService.getAllProducts();
+    }
 
     res.send(products);
+}));
+
+
+router.post('/', exceptionHandler(async (req, res) => {
+    if (!req.user) {
+        throw new Error('Invalid token');
+    }
+    if (!req.user.isMerchant) {
+        throw new Error('Not allowed');
+    }
+    const productService = new ProductService();
+    const product = { ...req.body, merchantId: req.user.id };
+    const result = await productService.createProduct(product);
+
+    res.send(result.toString());
 }));
 
 module.exports = router;
