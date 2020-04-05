@@ -22,8 +22,11 @@ app.use(function(error, req, res, next) {
     res.status(500);
     // TODO Michal: better exception handling
     // distinguish between internal exceptions and exceptions to show to the user
-    console.log(Object.keys(error));
-    res.json({message: error.message, stack: error.stack });
+    if (error.message || error.stack) {
+      res.json({message: error.message, stack: error.stack });
+    } else {
+      res.send(error);
+    }
   });
 
 
