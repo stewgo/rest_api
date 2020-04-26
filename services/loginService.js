@@ -39,7 +39,7 @@ class LoginService {
 
     async getUser(username, password) {
         const rows = await this.connection.query(
-            `select id, username, password, email, name, isMerchant, phoneNumber, address 
+            `select id, username, password, email, name, isMerchant, phoneNumber, address, pickupInfo
             from users
             where username = ? or email = ?;`,
             [username, username]

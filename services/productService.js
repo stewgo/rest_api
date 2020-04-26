@@ -9,7 +9,7 @@ class ProductService {
             conn = await getConnection();
 
             return await conn.query(`
-                select p.id as id, p.name as productName, u.name as merchantName, price, availableDate, description
+                select p.id as id, p.name as name, u.name as merchantName, price, availableDate, description, image
                 from products p inner join users u on (p.merchantId = u.id); `
             );
 
@@ -25,7 +25,7 @@ class ProductService {
             conn = await getConnection();
 
             return await conn.query(`
-                select products.id as id, products.name as productName, price, availableDate, description
+                select products.id as id, products.name as name, price, availableDate, description, image
                 from products where products.merchantId = ?; `,
                 [ merchantId ]
             );
