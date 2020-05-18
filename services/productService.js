@@ -1,34 +1,43 @@
 const mariadb = require('mariadb');
 const getConnection = require('../utils/getConnection');
+const QueryBuilder = require('../utils/queryBuilder');
+const Product = require('../entities/product');
+const _ = require('underscore');
 
 class ProductService {
-    async getAllProducts() {
+    // https://github.com/mariadb-corporation/mariadb-connector-nodejs/blob/master/documentation/promise-api.md#connectionquerysql-values---promise
+    async getProducts(options) {
         let conn;
 
         try {
             conn = await getConnection();
+            let params = [];
+            const selectFragments = [];
+            const whereFragments = [];
 
-            return await conn.query(`
-                select p.id as id, p.name as name, u.name as merchantName, price, availableDate, description, image
-                from products p inner join users u on (p.merchantId = u.id); `
-            );
+            selectFragments.push(`
+                p.id as id, p.name as name, p.merchantId as merchantId, price, availableDate, description, image
+                from products p
+            `);
 
-        } finally {
-            if (conn) conn.end();
-        }
-    }
+            if (_.isNumber(options.merchantId)) {
+                whereFragments.push('p.merchantId = ?');
+                params.push(options.merchantId);
+            }
 
-    async getProductsByMerchantId(merchantId) {
-        let conn;
+            if (options.availableOnly) {
+                selectFragments.push('left outer join orders o on (o.productId = p.id)');
+                whereFragments.push('o.id is null AND p.availableDate > current_timestamp()');
+            }
 
-        try {
-            conn = await getConnection();
+            // I'm not sure if using this QueryBuilder is the best approach
+            const query = QueryBuilder.build({
+                select: selectFragments,
+                where: whereFragments
+            });
+            const result = await conn.query(query, params);
 
-            return await conn.query(`
-                select products.id as id, products.name as name, price, availableDate, description, image
-                from products where products.merchantId = ?; `,
-                [ merchantId ]
-            );
+            return result.map(json => new Product(json));
 
         } finally {
             if (conn) conn.end();

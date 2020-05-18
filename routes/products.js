@@ -1,22 +1,37 @@
 const express = require('express');
 const exceptionHandler = require('../utils/exceptionHandler');
 const ProductService = require('../services/productService');
+const UserService = require('../services/userService');
+const _ = require('underscore');
 
 const router = express.Router();
 
+// Using https://jsonapi.org
 /* GET products listing. */
 router.get('/', exceptionHandler(async (req, res) => {
     const productService = new ProductService();
-    let products;
-    const merchantId = req.query.merchantId;
+    const userService = new UserService();
+    const options = {};
 
-    if (merchantId) {
-        products = await productService.getProductsByMerchantId(merchantId);
-    } else {
-        products = await productService.getAllProducts();
+    //TODO: this can be improved
+    if (req.query.merchantId) {
+        options.merchantId = parseInt(req.query.merchantId);
+    }
+    if (req.query.availableOnly) {
+        options.availableOnly = req.query.availableOnly.toLowerCase() === 'true';
+    }
+    const products = await productService.getProducts(options);
+    const response = {
+        data: products.map(product => product.toResource())
+    };
+
+    if (req.query.include === 'merchants') {
+        const users = await userService.getUsersByIds(_.uniq(products.map(product => product.json.merchantId)));
+
+        response.included = users.map(user => user.toResource());
     }
 
-    res.send(products);
+    res.send(response);
 }));
 
 

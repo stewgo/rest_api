@@ -1,5 +1,6 @@
 const mariadb = require('mariadb');
 const getConnection = require('../utils/getConnection');
+const User = require('../entities/user');
 
 class UserService {
     async getUserByToken(token) {
@@ -19,6 +20,24 @@ class UserService {
                 return rows[0];
             }
 
+        } finally {
+            if (conn) conn.end();
+        }
+    }
+
+    async getUsersByIds(userIds) {
+        let conn;
+        try {
+            conn = await getConnection();
+
+            const results = await conn.query(`
+                SELECT id, name
+                FROM users
+                WHERE ID IN ?`,
+                [userIds]
+            );
+
+            return results.map(row => new User(row));
         } finally {
             if (conn) conn.end();
         }

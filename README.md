@@ -22,3 +22,7 @@ node index.js
 ```
 nodemon index.js
 ```
+
+
+## Tips
+This follows the JSON API spec: https://jsonapi.org
