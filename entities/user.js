@@ -1,11 +1,8 @@
 const _ = require('underscore');
+const BaseEntity = require('../entities/baseEntity');
 
-class User {
-    constructor(json) {
-        this.json = json;
-    }
-
-    toResource() {
+class User extends BaseEntity {
+    serialize() {
         const attributes = _.omit(this.json, ['id']);
         const json = this.json;
 

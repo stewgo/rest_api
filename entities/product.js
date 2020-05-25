@@ -1,11 +1,8 @@
 const _ = require('underscore');
+const BaseEntity = require('../entities/baseEntity');
 
-class Product {
-    constructor(json) {
-        this.json = json;
-    }
-
-    toResource() {
+class Product extends BaseEntity {
+    serialize() {
         const attributes = _.omit(this.json, ['id', 'merchantId']);
         const json = this.json;
 
@@ -14,7 +11,7 @@ class Product {
             id: json.id,
             attributes,
             relationships: {
-                merchants: {
+                merchant: {
                     data: {
                         type: 'users',
                         id: json.merchantId
@@ -22,6 +19,16 @@ class Product {
                 }
             }
         };
+    }
+
+    static deserialize(resource) {
+        const json = {
+            id: resource.id,
+            ...resource.attributes,
+            merchantId: resource.relationships.merchant.data.id
+        };
+
+        return new Product(json);
     }
 }
 

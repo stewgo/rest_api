@@ -2,8 +2,8 @@ const express = require('express');
 const assetRouter = require('./routes/assets');
 const productRouter = require('./routes/products');
 const loginRouter = require('./routes/login');
-const signupRouter = require('./routes/signup');
 const orderRouter = require('./routes/orders');
+const userRouter = require('./routes/users');
 const authenticationMiddleware = require('./middlewares/authentication');
 
 const app = express();
@@ -15,8 +15,8 @@ app.use(authenticationMiddleware);
 app.use('/assets', assetRouter);
 app.use('/products', productRouter);
 app.use('/login', loginRouter);
-app.use('/signup', signupRouter);
 app.use('/orders', orderRouter);
+app.use('/users', userRouter);
 
 app.use(function(error, req, res, next) {
     res.status(500);

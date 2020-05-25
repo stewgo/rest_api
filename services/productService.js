@@ -25,6 +25,11 @@ class ProductService {
                 params.push(options.merchantId);
             }
 
+            if (_.isNumber(options.productId)) {
+                whereFragments.push('p.id = ?');
+                params.push(options.productId);
+            }
+
             if (options.availableOnly) {
                 selectFragments.push('left outer join orders o on (o.productId = p.id)');
                 whereFragments.push('o.id is null AND p.availableDate > current_timestamp()');

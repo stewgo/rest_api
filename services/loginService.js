@@ -14,7 +14,7 @@ class LoginService {
             if (user) {
                 return { 
                     token: await this.createToken(user.id),
-                    user
+                    userId: user.id
                 };
             } else {
                 throw new Error('Incorrect username or password');
@@ -39,7 +39,7 @@ class LoginService {
 
     async getUser(username, password) {
         const rows = await this.connection.query(
-            `select id, username, password, email, name, isMerchant, phoneNumber, address, pickupInfo
+            `select id, username, password, email
             from users
             where username = ? or email = ?;`,
             [username, username]
@@ -53,7 +53,6 @@ class LoginService {
         const result = await bcrypt.compare(password, user.password);
 
         if (result) {
-            delete user.password;
             return user;
         } else {
             return null;

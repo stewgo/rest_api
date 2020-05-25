@@ -1,6 +1,7 @@
 const express = require('express');
 const exceptionHandler = require('../utils/exceptionHandler');
 const ProductService = require('../services/productService');
+const Product = require('../entities/product');
 const UserService = require('../services/userService');
 const _ = require('underscore');
 
@@ -22,13 +23,14 @@ router.get('/', exceptionHandler(async (req, res) => {
     }
     const products = await productService.getProducts(options);
     const response = {
-        data: products.map(product => product.toResource())
+        data: products.map(product => product.serialize())
     };
 
-    if (req.query.include === 'merchants') {
+    if (req.query.include === 'merchant') {
+        // Make this more secure, only include certain fields
         const users = await userService.getUsersByIds(_.uniq(products.map(product => product.json.merchantId)));
 
-        response.included = users.map(user => user.toResource());
+        response.included = users.map(user => user.serialize());
     }
 
     res.send(response);
@@ -39,12 +41,12 @@ router.post('/', exceptionHandler(async (req, res) => {
     if (!req.user) {
         throw new Error('Invalid token');
     }
-    if (!req.user.isMerchant) {
+    if (!req.user.json.isMerchant) {
         throw new Error('Not allowed');
     }
     const productService = new ProductService();
-    const product = { ...req.body, merchantId: req.user.id };
-    const result = await productService.createProduct(product);
+    const product = Product.deserialize(req.body);
+    const result = await productService.createProduct(product.getJson());
 
     res.send(result.toString());
 }));

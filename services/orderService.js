@@ -1,65 +1,54 @@
 const mariadb = require('mariadb');
 const getConnection = require('../utils/getConnection');
+const Order = require('../entities/order');
 
 class OrderService {
-    async placeOrder(userId, productId) {
+    async addOrder(userId, productId) {
         let conn;
 
         try {
             conn = await getConnection();
-            const now = new Date(Date.now()).getTime() / 1000;
+            const now = new Date(Date.now());
+            const nowTime = now.getTime() / 1000;
 
             await conn.query(`
                 INSERT into orders (productId, purchaserId, date)
                 VALUES (?, ?, FROM_UNIXTIME(?));`,
-                [ productId, userId, now]
+                [ productId, userId, nowTime ]
             );
 
             const rows = await conn.query('SELECT LAST_INSERT_ID() as orderId;');
             const orderId = rows[0].orderId;
-            const order = await this._getOrderDetails(orderId, conn);
 
-            return {
-                id: order.id,
-                date: order.date,
-                purchaserId: order.purchaserId,
-                product: {
-                    id: order.productId,
-                    name: order.productName,
-                    image: order.image,
-                    description: order.description,
-                    price: order.price,
-                    availableDate: order.availableDate
-                },
-                merchant: {
-                    id: order.merchantId,
-                    username: order.username,
-                    name: order.merchantName,
-                    email: order.email,
-                    phoneNumber: order.phoneNumber,
-                    address: order.address,
-                    pickupInfo: order.pickupInfo
-                }
-            };
+            return new Order({
+                id: orderId,
+                date: now.toISOString(),
+                purchaserId: userId,
+                productId
+            });
         } finally {
             if (conn) conn.end();
         }
     }
 
+    async getOrder(id) {
+        let conn;
 
-    async _getOrderDetails(orderId, conn) {
-        const rows = await conn.query(`
-            SELECT u.id as merchantId, u.username, u.name as merchantName, u.email, u.phoneNumber, u.address, u.pickupInfo, 
-                o.id, o.date, o.purchaserId, p.name as productName, p.image, p.description, p.price, p.id as productId, p.availableDate
-            FROM users u INNER JOIN products p ON (u.id = p.merchantId) INNER JOIN orders o ON (o.productId = p.id)
-            WHERE o.id = ?;`,
-            [orderId]
-        );
+        try {
+            conn = await getConnection();
 
-        if (rows.length) {
-            return rows[0];
-        } else {
-            return null;
+            const result = await conn.query(`
+                SELECT id, productId, purchaserId, date from orders WHERE id = ?; `,
+                [ id ]
+            );
+
+            if (result.length) {
+                return new Order(result[0]);
+            } else {
+                return null;
+            }
+        } finally {
+            if (conn) conn.end();
         }
     }
 }
